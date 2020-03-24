@@ -39,10 +39,12 @@ class GeoserverWrapper {
 		echo 'URL:'.$url.'<br>';die;
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_USERPWD, $this->username.":".$this->password);
-		if ($method == 'POST') {
+		if ($method == 'POST' || $method == 'PUT') {
 			curl_setopt($ch, CURLOPT_POST, true);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-		} else if ($method == 'DELETE' || $method == 'PUT') {
+		} 
+
+		if ($method == 'DELETE' || $method == 'PUT') {
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 		}
 
@@ -218,10 +220,19 @@ class GeoserverWrapper {
 		$this->runApi('styles/'.urlencode($styleName), 'PUT', stripslashes($SLD), 'application/vnd.ogc.sld+xml');
 		return $rv;
 	}
+	
+	public function updateStyle($styleName, $SLD) {
+		$temp = $this->runApi('styles/'.urlencode($styleName), 'PUT', stripslashes($SLD), 'application/vnd.ogc.sld+xml');
+		return (strlen($temp) == 0);
+	}
 
 	public function addStyleToLayer($layerName, $workspaceName, $styleName) {
 		// Just adds style to the list of supported styles - then WMS requests can pass the desired style
 		return $this->runApi('layers/'.urlencode($layerName).'/styles', 'POST', '<style><name>'.htmlentities($styleName, ENT_COMPAT).'</name></style>');
+	}
+	
+	public function deleteAllStylesFromLayer($layerName) {
+		return $this->runApi('layers/'.urlencode($layerName).'/styles', 'DELETE');
 	}
 
 	public function deleteStyle($styleName) {
